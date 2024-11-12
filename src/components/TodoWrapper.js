@@ -1,13 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TodoForm } from "./TodoForm";
 import { v4 as uuidv4 } from "uuid";
 import { Todo } from "./Todo";
 import { EditTodoForm } from "./EditTodoForm";
-uuidv4();
+import axios from "axios";
+uuidv4(); 
 
 export const TodoWrapper = () => {
   const [todos, setTodos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // Gọi API để lấy dữ liệu To-dos
+  useEffect(() => {
+    const fetchTodos = async () => {
+      try {
+        const response = await axios.get(
+          "https://jsonplaceholder.typicode.com/todos"
+        );
+        // Chỉ lấy một số lượng todo nhất định, ví dụ 10
+        const apiTodos = response.data.slice(0, 10).map((todo) => ({
+          id: uuidv4(), // Thay thế ID bằng UUID của riêng bạn
+          task: todo.title,
+          completed: todo.completed,
+          isEditing: false,
+        }));
+        setTodos(apiTodos);
+      } catch (error) {
+        console.error("Error fetching todos", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTodos();
+  }, []);
   const addTodo = (todo) => {
     setTodos([
       ...todos,
@@ -49,6 +74,11 @@ export const TodoWrapper = () => {
       )
     );
   };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <div className="TodoWrapper">
       <h1>Get Things Done!</h1>
